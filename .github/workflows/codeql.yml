@@ -8,12 +8,9 @@ name: "Code scanning"
 on:
   push:
     branches: ["main"]
-    paths:
-      - "web/**"
   pull_request:
     branches: ["main"]
-    paths:
-      - "web/**"
+  workflow_dispatch:
 
 jobs:
   analyze:
