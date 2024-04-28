@@ -1,0 +1,40 @@
+install docker
+install act
+act -l
+act
+
+sudo yum update -y
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo docker build -t my-app .
+sudo docker run -p 8000:5000 my-app
+sudo docker run -p 8000:5000 -e Name=Chetan my-app
+# Check Conatiners
+sudo docker ps -a
+# Check Images
+sudo docker images
+# To remove a specific stopped container
+sudo docker rm <container_id>
+# To remove all stopped containers
+sudo docker container prune
+# To remove image
+sudo docker rmi -f <image_id_or_name>
+# Docker Hub
+sudo docker login
+sudo docker tag my-app <username>/<repository_name>
+sudo docker tag my-app manib0906/my-app
+sudo docker push <username>/<repository_name>
+sudo docker push manib0906/my-app
+sudo docker pull <username>/<repository_name>
+sudo docker pull manib0906/my-app
+# AWS ECR
+# Local Image Name = python-docker
+# ECR Image Name = python-ecr
+sudo apt install awscli
+sudo aws configure
+sudo aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin 111351740963.dkr.ecr.ap-south-1.amazonaws.com
+sudo docker tag python-docker:latest 111351740963.dkr.ecr.ap-south-1.amazonaws.com/python-ecr:latest
+sudo docker push 111351740963.dkr.ecr.ap-south-1.amazonaws.com/python-ecr:latest

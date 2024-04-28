@@ -1,0 +1,50 @@
+name: Production
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: docker build -t flask-image:latest .
+
+      # Log in to Docker Hub or your container registry
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Push the Docker image to Docker Hub or your container registry
+      - name: Push Docker image
+        run: docker push flask-image:latest
+
+        # Forticlient Connect
+      - name: Install openfortivpn
+        run: |
+          sudo apt update
+          sudo apt install -y openfortivpn
+
+      - name: Connect to VPN
+        run: |
+          echo -e "host = ${{ secrets.OVPN_HOST }}\nport = ${{ secrets.OVPN_PORT }}\nusername = ${{ secrets.OVPN_USERNAME }}\npassword = ${{ secrets.OVPN_PASSWORD }}" | sudo tee /etc/openfortivpn/config
+          sudo openfortivpn --trusted-cert 0bfb26f86f37b4471f5003b3c5c05bfc896b5cc9110b8633ac8943ea33ca4e61 &
+
+      # SSH into the server and deploy the Docker image
+      - name: Deploy Docker image to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          port: ${{ secrets.DEV_PORT }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.DEV_KEY }}
+          script: |
+            docker pull flask-image:latest
+            docker stop flask-image || true
+            docker rm flask-image || true
+            docker run -d --name flask-image -p 5000:5000 flask-image:latest
